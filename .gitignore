@@ -11,3 +11,6 @@ venv/
 
 # OS files
 .DS_Store
+
+# Stray BytesIO artifacts
+<_io.BytesIO*
