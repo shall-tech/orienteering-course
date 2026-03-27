@@ -1,0 +1,13 @@
+# Generated output
+output/
+output_gym/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS files
+.DS_Store
