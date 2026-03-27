@@ -17,6 +17,16 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Web UI (Streamlit)
+
+```bash
+streamlit run app.py
+```
+
+Opens a browser at `localhost:8501` with a visual interface for configuring courses, previewing the answer key, viewing a course map, and downloading PDFs.
+
+### Command Line
+
 ```bash
 # Default: 20 stations, 5' apart, 20 courses, 3 legs each
 python3 main.py
