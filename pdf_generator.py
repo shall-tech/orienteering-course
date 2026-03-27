@@ -32,7 +32,7 @@ def generate_score_cards(courses, output_path, timestamp=None):
     if timestamp is None:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    c = canvas.Canvas(str(output_path), pagesize=(CARD_W, CARD_H))
+    c = canvas.Canvas(output_path, pagesize=(CARD_W, CARD_H))
 
     for course in courses:
         _draw_score_card(c, course, timestamp)
@@ -200,7 +200,7 @@ def generate_answer_key(courses, num_legs, output_path, timestamp=None):
 
     # Build the document
     doc = SimpleDocTemplate(
-        str(output_path),
+        output_path,
         pagesize=letter,
         leftMargin=margin,
         rightMargin=margin,
