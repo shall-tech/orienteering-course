@@ -159,7 +159,7 @@ col5.metric("W/E Buffer", f"{max_west:.0f} / {max_east:.0f} ft")
 
 st.divider()
 
-if st.button("Generate Courses", type="primary", use_container_width=True):
+if st.button("Generate Courses", type="primary", width="stretch"):
     config = CourseConfig(
         stations=stations,
         station_distance=station_distance,
@@ -219,7 +219,7 @@ if "generated" in st.session_state:
             row[f"Leg {i+1}"] = f"{leg.azimuth}° / {leg.distance}'"
         row["Dest."] = c.destination
         table_data.append(row)
-    st.dataframe(table_data, use_container_width=True, hide_index=True)
+    st.dataframe(table_data, width="stretch", hide_index=True)
 
     # Course map visualization
     st.subheader("Course Map")
@@ -250,7 +250,7 @@ if "generated" in st.session_state:
             data=st.session_state["cards_pdf"],
             file_name=f"score_cards_{file_stamp}.pdf",
             mime="application/pdf",
-            use_container_width=True,
+            width="stretch",
         )
     with dl2:
         st.download_button(
@@ -258,5 +258,5 @@ if "generated" in st.session_state:
             data=st.session_state["key_pdf"],
             file_name=f"answer_key_{file_stamp}.pdf",
             mime="application/pdf",
-            use_container_width=True,
+            width="stretch",
         )
