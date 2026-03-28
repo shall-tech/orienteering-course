@@ -62,6 +62,10 @@ def main():
         help="Minimum station number difference between start and destination (default: 2)"
     )
     parser.add_argument(
+        "--min-line-angle", type=int, default=25,
+        help="Reject legs within this many degrees of the station line (default: 25)"
+    )
+    parser.add_argument(
         "--seed", type=int, default=None,
         help="Random seed for reproducible generation"
     )
@@ -83,6 +87,7 @@ def main():
         num_legs=args.legs,
         num_courses=args.courses,
         min_station_gap=args.min_station_gap,
+        min_line_angle=args.min_line_angle,
         seed=args.seed,
     )
 

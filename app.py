@@ -132,6 +132,10 @@ station_distance = st.sidebar.number_input("Station distance (ft)", min_value=1.
 courses = st.sidebar.number_input("Number of courses", min_value=1, max_value=100, value=20)
 legs = st.sidebar.number_input("Legs per course", min_value=2, max_value=10, value=3)
 min_station_gap = st.sidebar.number_input("Min station gap", min_value=1, max_value=10, value=2)
+min_line_angle = st.sidebar.number_input(
+    "Min angle from line (°)", min_value=0, max_value=45, value=25,
+    help="Reject legs within this many degrees of the station line (avoids long runs along the line)"
+)
 
 st.sidebar.header("Space Boundaries (ft)")
 max_north = st.sidebar.number_input("Max north", min_value=0.0, max_value=500.0, value=100.0, step=5.0)
@@ -170,6 +174,7 @@ if st.button("Generate Courses", type="primary", width="stretch"):
         num_legs=legs,
         num_courses=courses,
         min_station_gap=min_station_gap,
+        min_line_angle=min_line_angle,
         seed=seed,
     )
 

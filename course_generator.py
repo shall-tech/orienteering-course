@@ -43,6 +43,7 @@ class CourseConfig:
     num_legs: int = 3
     num_courses: int = 20
     min_station_gap: int = 2
+    min_line_angle: int = 25   # reject legs within this many degrees of the station line
     seed: int = None
 
 
@@ -85,6 +86,15 @@ def move(x: float, y: float, azimuth_deg: int, distance_ft: int):
     dx = distance_ft * math.sin(rad)
     dy = distance_ft * math.cos(rad)
     return x + dx, y + dy
+
+
+def _angle_from_line(azimuth: int) -> int:
+    """Return the angle (0-90°) between a bearing and the east-west station line.
+
+    0° means the leg runs exactly along the line (bearings 90° or 270°).
+    90° means the leg is perpendicular to the line (bearings 0° or 180°).
+    """
+    return abs(90 - (azimuth % 180))
 
 
 def station_x(station_num: int, station_distance: float) -> float:
@@ -190,6 +200,11 @@ def _generate_single_course(label, config, bbox, min_leg, max_leg,
             az = random.randint(0, 359)
             dist = random.randint(min_leg, max_leg)
 
+            # Reject legs that run too close to parallel with the station line
+            if _angle_from_line(az) < config.min_line_angle:
+                valid = False
+                break
+
             nx, ny = move(cx, cy, az, dist)
 
             if not _in_bounds(nx, ny, bbox):
@@ -207,8 +222,12 @@ def _generate_single_course(label, config, bbox, min_leg, max_leg,
         final_az = round(final_az_exact) % 360
         final_dist = round(final_dist_exact)
 
-        # Skip if final leg is too short (would be trivial) or too long
+        # Skip if final leg is too short (would be trivial)
         if final_dist < max(min_leg // 2, 2):
+            continue
+
+        # Skip if final leg runs too close to the station line
+        if _angle_from_line(final_az) < config.min_line_angle:
             continue
 
         # Check that the final leg path endpoint is in bounds
