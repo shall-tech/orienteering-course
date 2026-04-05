@@ -66,6 +66,10 @@ def main():
         help="Reject legs within this many degrees of the station line (default: 25)"
     )
     parser.add_argument(
+        "--label", type=str, default="",
+        help="Optional description printed on cards and key, e.g. 'Camporee practice course'"
+    )
+    parser.add_argument(
         "--seed", type=int, default=None,
         help="Random seed for reproducible generation"
     )
@@ -89,6 +93,7 @@ def main():
         min_station_gap=args.min_station_gap,
         min_line_angle=args.min_line_angle,
         seed=args.seed,
+        label=args.label,
     )
 
     # Print summary of the setup
@@ -115,18 +120,27 @@ def main():
     timestamp = now.strftime("%Y-%m-%d %H:%M")
     file_stamp = now.strftime("%Y%m%d_%H%M%S")
 
+    # Build file name prefix: include label slug if provided
+    if config.label:
+        label_slug = config.label.lower().replace(" ", "_")
+        # Remove non-alphanumeric characters (except underscores)
+        label_slug = "".join(c for c in label_slug if c.isalnum() or c == "_")
+        file_prefix = f"{label_slug}_{file_stamp}"
+    else:
+        file_prefix = file_stamp
+
     # Create output directory
     os.makedirs(args.output, exist_ok=True)
 
     # Generate score cards PDF
-    cards_path = os.path.join(args.output, f"score_cards_{file_stamp}.pdf")
+    cards_path = os.path.join(args.output, f"score_cards_{file_prefix}.pdf")
     print(f"  Writing score cards to {cards_path}")
-    generate_score_cards(courses, cards_path, timestamp=timestamp)
+    generate_score_cards(courses, cards_path, timestamp=timestamp, label=config.label)
 
     # Generate answer key PDF
-    key_path = os.path.join(args.output, f"answer_key_{file_stamp}.pdf")
+    key_path = os.path.join(args.output, f"answer_key_{file_prefix}.pdf")
     print(f"  Writing answer key to {key_path}")
-    generate_answer_key(courses, config.num_legs, key_path, timestamp=timestamp)
+    generate_answer_key(courses, config.num_legs, key_path, timestamp=timestamp, config=config)
 
     print()
     print("Done! Output files:")

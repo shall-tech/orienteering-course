@@ -144,6 +144,8 @@ max_west = st.sidebar.number_input("Max west", min_value=0.0, max_value=100.0, v
 max_east = st.sidebar.number_input("Max east", min_value=0.0, max_value=100.0, value=20.0, step=5.0)
 
 st.sidebar.header("Advanced")
+course_label = st.sidebar.text_input("Course label (optional)", value="",
+    help="e.g. 'Camporee practice course' — printed on cards, key, and file names")
 seed_input = st.sidebar.text_input("Random seed (blank = random)", value="")
 seed = int(seed_input) if seed_input.strip().isdigit() else None
 
@@ -176,6 +178,7 @@ if st.button("Generate Courses", type="primary", width="stretch"):
         min_station_gap=min_station_gap,
         min_line_angle=min_line_angle,
         seed=seed,
+        label=course_label,
     )
 
     try:
@@ -186,20 +189,28 @@ if st.button("Generate Courses", type="primary", width="stretch"):
         timestamp = now.strftime("%Y-%m-%d %H:%M")
         file_stamp = now.strftime("%Y%m%d_%H%M%S")
 
+        # Build file prefix with label slug if provided
+        if config.label:
+            label_slug = config.label.lower().replace(" ", "_")
+            label_slug = "".join(c for c in label_slug if c.isalnum() or c == "_")
+            file_prefix = f"{label_slug}_{file_stamp}"
+        else:
+            file_prefix = file_stamp
+
         # Generate PDFs into memory buffers
         cards_buf = io.BytesIO()
-        generate_score_cards(generated, cards_buf, timestamp=timestamp)
+        generate_score_cards(generated, cards_buf, timestamp=timestamp, label=config.label)
         cards_buf.seek(0)
 
         key_buf = io.BytesIO()
-        generate_answer_key(generated, config.num_legs, key_buf, timestamp=timestamp)
+        generate_answer_key(generated, config.num_legs, key_buf, timestamp=timestamp, config=config)
         key_buf.seek(0)
 
         # Store everything in session state so it survives reruns
         st.session_state["generated"] = generated
         st.session_state["config"] = config
         st.session_state["timestamp"] = timestamp
-        st.session_state["file_stamp"] = file_stamp
+        st.session_state["file_prefix"] = file_prefix
         st.session_state["cards_pdf"] = cards_buf.getvalue()
         st.session_state["key_pdf"] = key_buf.getvalue()
 
@@ -211,7 +222,7 @@ if "generated" in st.session_state:
     generated = st.session_state["generated"]
     config = st.session_state["config"]
     timestamp = st.session_state["timestamp"]
-    file_stamp = st.session_state["file_stamp"]
+    file_prefix = st.session_state["file_prefix"]
 
     st.success(f"Generated {len(generated)} courses!")
 
@@ -253,7 +264,7 @@ if "generated" in st.session_state:
         st.download_button(
             label="Download Score Cards",
             data=st.session_state["cards_pdf"],
-            file_name=f"score_cards_{file_stamp}.pdf",
+            file_name=f"score_cards_{file_prefix}.pdf",
             mime="application/pdf",
             width="stretch",
         )
@@ -261,7 +272,7 @@ if "generated" in st.session_state:
         st.download_button(
             label="Download Answer Key",
             data=st.session_state["key_pdf"],
-            file_name=f"answer_key_{file_stamp}.pdf",
+            file_name=f"answer_key_{file_prefix}.pdf",
             mime="application/pdf",
             width="stretch",
         )

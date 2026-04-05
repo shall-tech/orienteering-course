@@ -24,7 +24,7 @@ CARD_W = 3 * rl_inch
 CARD_H = 5 * rl_inch
 
 
-def generate_score_cards(courses, output_path, timestamp=None):
+def generate_score_cards(courses, output_path, timestamp=None, label=""):
     """
     Create a PDF with one 3x5 page per course.
     Each page is a single score card.
@@ -35,13 +35,13 @@ def generate_score_cards(courses, output_path, timestamp=None):
     c = canvas.Canvas(output_path, pagesize=(CARD_W, CARD_H))
 
     for course in courses:
-        _draw_score_card(c, course, timestamp)
+        _draw_score_card(c, course, timestamp, label=label)
         c.showPage()
 
     c.save()
 
 
-def _draw_score_card(c, course, timestamp):
+def _draw_score_card(c, course, timestamp, label=""):
     """Draw a single score card on the current 3x5 page."""
     margin = 0.25 * rl_inch
     usable_w = CARD_W - 2 * margin
@@ -53,6 +53,12 @@ def _draw_score_card(c, course, timestamp):
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(CARD_W / 2, y - 14, "SCORE CARD")
     y -= 28
+
+    # Optional label (e.g. "Camporee practice course")
+    if label:
+        c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(CARD_W / 2, y - 9, label)
+        y -= 16
 
     # Course label and starting point
     c.setFont("Helvetica-Bold", 11)
@@ -103,7 +109,7 @@ def _draw_score_card(c, course, timestamp):
 
 # -- Answer Key (letter-size) -----------------------------------------------
 
-def generate_answer_key(courses, num_legs, output_path, timestamp=None):
+def generate_answer_key(courses, num_legs, output_path, timestamp=None, config=None, label=""):
     """
     Create a letter-size PDF with a table showing all courses and answers.
     Columns: Course, Start, Leg 1, Leg 2, ..., Leg N, Destination
@@ -208,9 +214,50 @@ def generate_answer_key(courses, num_legs, output_path, timestamp=None):
         bottomMargin=0.5 * rl_inch,
     )
 
+    # Build the "Course Setup" section for below the answer key table
+    setup_elements = []
+    if config is not None:
+        dist_str = f"{config.station_distance:g}"
+        setup_heading_style = ParagraphStyle(
+            'SetupHeading',
+            parent=styles['Normal'],
+            fontSize=11,
+            leading=14,
+            spaceBefore=12,
+            spaceAfter=2,
+            fontName='Helvetica-Bold',
+        )
+        setup_body_style = ParagraphStyle(
+            'SetupBody',
+            parent=styles['Normal'],
+            fontSize=10,
+            leading=13,
+        )
+        setup_elements = [
+            Paragraph("Course Setup", setup_heading_style),
+            Paragraph(f"{config.stations} stations \u00d7 {dist_str}\u2032 spacing", setup_body_style),
+            Paragraph("Station 1 on the western edge", setup_body_style),
+        ]
+
+    # Optional label below the title
+    label_text = config.label if config and config.label else label
+    label_elements = []
+    if label_text:
+        label_style = ParagraphStyle(
+            'LabelStyle',
+            parent=styles['Normal'],
+            fontSize=11,
+            alignment=1,  # centered
+            spaceAfter=6,
+            fontName='Helvetica-Oblique',
+        )
+        label_elements = [Paragraph(label_text, label_style)]
+
     elements = [
         Paragraph("COMPASS GAME — ANSWER KEY", title_style),
+        *label_elements,
         table,
+        *setup_elements,
         Spacer(1, 12),
         Paragraph(f"Generated: {timestamp}", ts_style),
     ]

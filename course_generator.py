@@ -45,6 +45,7 @@ class CourseConfig:
     min_station_gap: int = 2
     min_line_angle: int = 25   # reject legs within this many degrees of the station line
     seed: int = None
+    label: str = ""            # optional description, e.g. "Camporee practice course"
 
 
 def course_label(index: int) -> str:
@@ -195,6 +196,18 @@ def _generate_single_course(label, config, bbox, min_leg, max_leg,
         legs = []
         valid = True
 
+        # For courses with more than 2 legs, keep all waypoints on one side
+        # of the station line (north or south). Pick randomly, but respect
+        # the bounds — if max_south is 0, force north, and vice versa.
+        side = None  # None means no constraint (2-leg courses)
+        if config.num_legs > 2:
+            if bbox[3] <= 0:       # y_max <= 0: no north space
+                side = "south"
+            elif bbox[2] >= 0:     # y_min >= 0: no south space
+                side = "north"
+            else:
+                side = random.choice(["north", "south"])
+
         # Generate intermediate legs (all but the last)
         for leg_i in range(config.num_legs - 1):
             az = random.randint(0, 359)
@@ -208,6 +221,14 @@ def _generate_single_course(label, config, bbox, min_leg, max_leg,
             nx, ny = move(cx, cy, az, dist)
 
             if not _in_bounds(nx, ny, bbox):
+                valid = False
+                break
+
+            # Keep intermediate waypoints on the chosen side of the line
+            if side == "north" and ny < 0:
+                valid = False
+                break
+            elif side == "south" and ny > 0:
                 valid = False
                 break
 
