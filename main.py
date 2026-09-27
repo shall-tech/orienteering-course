@@ -14,6 +14,7 @@ Usage:
 
 import argparse
 import os
+import sys
 from datetime import datetime
 
 from course_generator import CourseConfig, generate_courses
@@ -98,7 +99,7 @@ def main():
 
     # Print summary of the setup
     line_length = (config.stations - 1) * config.station_distance
-    print(f"Orienteering Course Generator")
+    print("Orienteering Course Generator")
     print(f"  Stations:       {config.stations} (spaced {config.station_distance}' apart)")
     print(f"  Station line:   {line_length}' total")
     print(f"  Bounds:         N={config.max_north}' S={config.max_south}' "
@@ -106,13 +107,21 @@ def main():
     print(f"  Legs/course:    {config.num_legs}")
     print(f"  Courses:        {config.num_courses}")
     print(f"  Min station gap: {config.min_station_gap}")
+    print(f"  Min line angle: {config.min_line_angle}°")
+    if config.label:
+        print(f"  Label:          {config.label}")
     if config.seed is not None:
         print(f"  Seed:           {config.seed}")
     print()
 
     # Generate courses
     print("Generating courses...")
-    courses = generate_courses(config)
+    try:
+        courses = generate_courses(config)
+    except RuntimeError as e:
+        # The courses couldn't fit in the space — show the hint instead of a traceback
+        print(f"  Error: {e}")
+        sys.exit(1)
     print(f"  Generated {len(courses)} courses successfully.")
 
     # Timestamp for all outputs (display and file naming)

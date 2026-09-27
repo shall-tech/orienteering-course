@@ -5,8 +5,6 @@ Run with:  streamlit run app.py
 """
 
 import io
-import math
-import os
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -76,8 +74,6 @@ def _draw_course_map(courses_to_plot, config):
 
         # Draw path with arrows
         for j in range(len(path_x) - 1):
-            dx = path_x[j + 1] - path_x[j]
-            dy = path_y[j + 1] - path_y[j]
             ax.annotate(
                 "", xy=(path_x[j + 1], path_y[j + 1]),
                 xytext=(path_x[j], path_y[j]),
@@ -147,7 +143,11 @@ st.sidebar.header("Advanced")
 course_label = st.sidebar.text_input("Course label (optional)", value="",
     help="e.g. 'Camporee practice course' — printed on cards, key, and file names")
 seed_input = st.sidebar.text_input("Random seed (blank = random)", value="")
-seed = int(seed_input) if seed_input.strip().isdigit() else None
+# Accept any whole number, including negatives; anything else means "random"
+try:
+    seed = int(seed_input.strip())
+except ValueError:
+    seed = None
 
 # -- Main area: summary and generate button ----------------------------------
 line_length = (stations - 1) * station_distance
@@ -159,9 +159,9 @@ col2.metric("Station Line", f"{line_length:.0f} ft")
 col3.metric("Courses", courses)
 col4.metric("Legs", legs)
 
-col4, col5 = st.columns(2)
-col4.metric("N/S Extent", f"{max_north:.0f} / {max_south:.0f} ft")
-col5.metric("W/E Buffer", f"{max_west:.0f} / {max_east:.0f} ft")
+col5, col6 = st.columns(2)
+col5.metric("N/S Extent", f"{max_north:.0f} / {max_south:.0f} ft")
+col6.metric("W/E Buffer", f"{max_west:.0f} / {max_east:.0f} ft")
 
 st.divider()
 

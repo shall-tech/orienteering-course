@@ -7,10 +7,10 @@ Generates two PDFs:
 """
 
 from datetime import datetime
-from reportlab.lib.pagesizes import letter, inch
+from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch as rl_inch
 from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
@@ -44,7 +44,6 @@ def generate_score_cards(courses, output_path, timestamp=None, label=""):
 def _draw_score_card(c, course, timestamp, label=""):
     """Draw a single score card on the current 3x5 page."""
     margin = 0.25 * rl_inch
-    usable_w = CARD_W - 2 * margin
 
     # Current y position, starting from top
     y = CARD_H - margin
